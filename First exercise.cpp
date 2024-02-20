@@ -1,75 +1,50 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
+#include <cctype>
 
 using namespace std;
 
 string VigenereCipher(string text, string key, bool encrypt = true) {
     string result = "";
-    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    string numbers = "0123456789";
-    string specialChars = "!@#$%^&*()_+-=[]{}|/;':,.<>?";
-    int alphabetSize = alphabet.length();
-    int textLength = text.length();
     int keyLength = key.length();
 
-    for (int i = 0; i < textLength; ++i) {
+    for (int i = 0, j = 0; i < text.length(); ++i) {
         char currentChar = text[i];
-        char keyChar = key[i % keyLength];
 
-        keyChar = isupper(keyChar) ? toupper(keyChar) : tolower(keyChar);
+        if (currentChar >= 32 && currentChar <= 127) {
+            int textIndex = int(currentChar) - 32;
+            int keyIndex = int(toupper(key[j % keyLength])) - 32;
 
-        int currentCharIndex = -1;
-        int keyCharIndex = -1;
-
-        if (isalpha(currentChar)) {
-            currentCharIndex = alphabet.find(currentChar);
-            keyCharIndex = alphabet.find(keyChar);
-        }
-        else if (isdigit(currentChar)) {
-            currentCharIndex = numbers.find(currentChar);
-            keyCharIndex = numbers.find(keyChar);
-        }
-        else {
-            currentCharIndex = specialChars.find(currentChar);
-            keyCharIndex = specialChars.find(keyChar);
-        }
-
-        if (currentCharIndex != string::npos) {
-            int modifier = encrypt ? 1 : -1;
-            int encryptedCharIndex = (currentCharIndex + modifier * keyCharIndex + alphabetSize) % alphabetSize;
-
-            if (isalpha(currentChar)) {
-                result += isupper(currentChar) ? toupper(alphabet[encryptedCharIndex]) : tolower(alphabet[encryptedCharIndex]);
-            }
-            else if (isdigit(currentChar)) {
-                result += numbers[encryptedCharIndex];
+            if (encrypt) {
+                result += char((textIndex + keyIndex) % 96 + 32);
             }
             else {
-                result += specialChars[encryptedCharIndex];
+                result += char((textIndex - keyIndex + 96) % 96 + 32);
             }
+            ++j;
         }
         else {
+
             result += currentChar;
         }
     }
-
     return result;
 }
 
 int main() {
-    string Text, key;
+    string input, key;
 
     cout << "Enter the text: ";
-    getline(cin, Text);
+    getline(cin, input);
 
     cout << "Enter the key: ";
-    cin >> key;
+    getline(cin, key);
 
-    string encryptedText = VigenereCipher(Text, key, true);
+    string encryptedText = VigenereCipher(input, key, true);
+    cout << "Encrypted Text: " << encryptedText << endl;
+
     string decryptedText = VigenereCipher(encryptedText, key, false);
-
-    cout << "\nEncrypted text: " << encryptedText << endl;
-    cout << "Decrypted text: " << decryptedText << endl;
+    cout << "Decrypted Text: " << decryptedText << endl;
 
     return 0;
 }
