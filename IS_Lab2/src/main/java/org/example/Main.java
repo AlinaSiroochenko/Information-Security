@@ -4,7 +4,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Scanner;
 import java.nio.charset.StandardCharsets;
@@ -17,21 +16,21 @@ public class Main {
         try {
             Scanner scanner = new Scanner(System.in);
 
-            System.out.println("Select the mode (1 - Encryption, 2 - Decryption):");
-            int modeChoice = scanner.nextInt();
-            scanner.nextLine(); // Clearing the buffer after entering a number
+            System.out.println("Select the operation: \n1 - Encrypt\n2 - Decrypt from file");
+            int operationChoice = scanner.nextInt();
+            scanner.nextLine();
 
-            switch (modeChoice) {
+            switch (operationChoice) {
                 case 1:
                     // Encryption
                     handleEncryption(scanner);
                     break;
                 case 2:
                     // Decryption
-                    handleDecryption(scanner);
+                    handleDecryption();
                     break;
                 default:
-                    System.out.println("Incorrect mode selection");
+                    System.out.println("Incorrect operation selection");
                     break;
             }
 
@@ -40,15 +39,8 @@ public class Main {
         }
     }
 
-    private static SecretKey generateOrParseKey(String keyInput) {
+    private static SecretKey Key(String keyInput) {
         if (keyInput.isEmpty()) {
-            // Generate a random secret key
-            try {
-                return CryptoUtils.generateRandomKey();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
             // Convert the entered string to a binary byte array
             byte[] keyBytes = Base64.getDecoder().decode(keyInput);
             return CryptoUtils.parseKey(keyBytes);
@@ -64,7 +56,7 @@ public class Main {
             System.out.println("Enter the secret key:");
             String keyInput = scanner.nextLine();
 
-            System.out.println("Select the block cipher mode (1 - ECB, 2 - CBC, 3 - CFB):");
+            System.out.println("Select the block cipher mode\n1 - ECB\n2 - CBC\n3 - CFB");
             int blockCipherModeChoice = scanner.nextInt();
             scanner.nextLine();
 
@@ -78,7 +70,6 @@ public class Main {
                 byte[] ivBytes = ivInput.getBytes(StandardCharsets.UTF_8);
                 iv = new IvParameterSpec(ivBytes);
             }
-
 
             // Checking and supplementing the key, if necessary
             byte[] keyBytes = Arrays.copyOf(keyInput.getBytes(StandardCharsets.UTF_8), 16);
@@ -96,24 +87,24 @@ public class Main {
         }
     }
 
-    private static IvParameterSpec generateRandomIV() {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] iv = new byte[16];
-        secureRandom.nextBytes(iv);
-        return new IvParameterSpec(iv);
-    }
-
-    private static void handleDecryption(Scanner scanner) {
+    private static void handleDecryption() {
         try {
-            System.out.println("Enter the encrypted text:");
-            String encryptedText = scanner.nextLine();
+            // Read encrypted text from file
+            String encryptedText = readFromFile("encrypted_text.txt");
+
+            if (encryptedText == null || encryptedText.isEmpty()) {
+                System.out.println("No encrypted text found in the file.");
+                return;
+            }
+
+            Scanner scanner = new Scanner(System.in);
 
             System.out.println("Enter the secret key:");
             String keyInput = scanner.nextLine();
 
-            System.out.println("Select the block cipher mode (1 - ECB, 2 - CBC, 3 - CFB):");
+            System.out.println("Select the block cipher mode\n1 - ECB\n2 - CBC\n3 - CFB");
             int blockCipherModeChoice = scanner.nextInt();
-            scanner.nextLine(); // Clearing the buffer after entering a number
+            scanner.nextLine();
 
             String blockCipherMode = getBlockCipherMode(blockCipherModeChoice);
 
@@ -152,6 +143,15 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String readFromFile(String filePath) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private static String getBlockCipherMode(int choice) {

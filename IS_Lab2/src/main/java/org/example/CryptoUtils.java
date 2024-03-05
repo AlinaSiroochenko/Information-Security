@@ -6,13 +6,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
     public class CryptoUtils {
-
-        public static SecretKey generateRandomKey() throws Exception {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(128);
-            return keyGenerator.generateKey();
-        }
-
         public static String encrypt(String algorithm, String mode, String input, SecretKey key, IvParameterSpec iv)
                 throws Exception {
             Cipher cipher = Cipher.getInstance(algorithm + "/" + mode + "/PKCS5Padding");
